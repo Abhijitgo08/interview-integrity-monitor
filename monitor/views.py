@@ -36,12 +36,24 @@ def monitor(request):
 def start_interview(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
+            # Handle multipart/form-data or JSON
+            if request.content_type.startswith('multipart/form-data'):
+                data = request.POST
+                resume = request.FILES.get('resume')
+            else:
+                data = json.loads(request.body)
+                resume = None
+            
             email = data.get('email', 'unknown@example.com')
             name = data.get('name', 'Unknown Candidate')
             
             # Get or create candidate
             candidate, created = Candidate.objects.get_or_create(email=email, defaults={'name': name})
+            
+            # Update resume if provided
+            if resume:
+                candidate.resume = resume
+                candidate.save()
             
             # Start session
             session = InterviewSession.objects.create(candidate=candidate)
@@ -50,6 +62,22 @@ def start_interview(request):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+
+def get_candidate_details(request):
+    session_id = request.GET.get('session_id')
+    session = get_session(session_id)
+    if not session:
+        return JsonResponse({'status': 'error', 'message': 'Session not found'}, status=404)
+    
+    candidate = session.candidate
+    resume_url = candidate.resume.url if candidate.resume else None
+    
+    return JsonResponse({
+        'status': 'success',
+        'name': candidate.name,
+        'email': candidate.email,
+        'resume_url': resume_url
+    })
 
 @csrf_exempt
 def end_interview(request):

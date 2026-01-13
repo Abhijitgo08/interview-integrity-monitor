@@ -13,11 +13,16 @@
             padding: 20px;
         }
 
+
+
+        /* ... existing styles ... */
         .container {
             display: grid;
-            grid-template-columns: 3fr 1fr;
+            grid-template-columns: 2fr 1fr 1fr;
+            /* Changed to 3 columns: Video, Resume, Stats */
             gap: 20px;
-            max-width: 1200px;
+            max-width: 1600px;
+            /* Increased max-width */
             margin: 0 auto;
         }
 
@@ -32,136 +37,47 @@
             align-items: center;
         }
 
-        video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1);
-        }
-
-        /* Mirror */
-        .dashboard {
+        .resume-container {
             background: #333;
-            padding: 20px;
             border-radius: 8px;
-        }
-
-        .status-item {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #444;
-            border-radius: 6px;
-            border-left: 5px solid #888;
-        }
-
-        .status-item.good {
-            border-left-color: #28a745;
-        }
-
-        .status-item.bad {
-            border-left-color: #dc3545;
-        }
-
-        .status-item.warn {
-            border-left-color: #ffc107;
-        }
-
-        h3 {
-            margin-top: 0;
-            font-size: 1.1em;
-            color: #aaa;
-        }
-
-        .value {
-            font-size: 1.5em;
-            font-weight: bold;
-        }
-
-        #stop-btn {
-            background: #dc3545;
-            color: white;
-            width: 100%;
-            padding: 15px;
-            border: none;
-            font-size: 1.2em;
-            cursor: pointer;
-            border-radius: 6px;
-            margin-top: 20px;
-        }
-
-        /* Indicators */
-        #face-indicator {
-            color: white;
-        }
-
-        #mic-indicator {
-            color: white;
-        }
-
-        /* Alert Toast */
-        #alert-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
+            height: 480px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            z-index: 1000;
         }
 
-        .toast {
-            background: #333;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 6px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            border-left: 5px solid #007bff;
-            opacity: 0;
-            animation: fadeIn 0.3s forwards, fadeOut 0.3s forwards 4s;
-            min-width: 250px;
+        .resume-header {
+            padding: 10px;
+            background: #444;
+            border-bottom: 1px solid #555;
+            font-weight: bold;
+            text-align: center;
         }
 
-        .toast.error {
-            border-left-color: #dc3545;
-        }
-
-        .toast.warn {
-            border-left-color: #ffc107;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-            }
-
-            to {
-                opacity: 0;
-            }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
+        <!-- Video Feed -->
         <div class="video-feed">
             <video id="webcam" autoplay playsinline muted></video>
             <canvas id="capture-canvas" style="display:none;"></canvas>
         </div>
+
+        <!-- Resume Viewer -->
+        <div class="resume-container">
+            <div class="resume-header">Candidate Resume</div>
+            <iframe id="resume-frame" src=""></iframe>
+        </div>
+
+        <!-- Dashboard -->
         <div class="dashboard">
             <div id="status-face" class="status-item good">
                 <h3>Face Status</h3>
@@ -188,6 +104,23 @@
     <script>
         const SESSION_ID = sessionStorage.getItem('session_id');
         if (!SESSION_ID) window.location.href = '/';
+
+        // Fetch Candidate Details
+        async function loadCandidateDetails() {
+            try {
+                const response = await fetch(`/api/get_candidate_details/?session_id=${SESSION_ID}`);
+                const data = await response.json();
+                if (data.status === 'success' && data.resume_url) {
+                    console.log("Loading Resume URL:", data.resume_url);
+                    document.getElementById('resume-frame').src = data.resume_url;
+                } else {
+                    document.querySelector('.resume-container').innerHTML = '<div style="padding:20px; text-align:center; color:#aaa;">No Resume Uploaded</div>';
+                }
+            } catch (e) {
+                console.error("Failed to load candidate details", e);
+            }
+        }
+        loadCandidateDetails();
     </script>
     <script src="/static/monitor/js/monitor_core.js"></script>
 </body>

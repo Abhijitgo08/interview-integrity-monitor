@@ -4,6 +4,7 @@ from django.utils import timezone
 class Candidate(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
+    resume = models.FileField(upload_to='resumes/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

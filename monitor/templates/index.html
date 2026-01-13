@@ -27,6 +27,10 @@
             <label for="email">Email Address</label>
             <input type="email" id="email" required placeholder="name@example.com">
         </div>
+        <div class="form-group">
+            <label for="resume">Upload Resume (PDF)</label>
+            <input type="file" id="resume" accept=".pdf">
+        </div>
         <button onclick="startSession()">Begin Session</button>
         <div id="error-msg" class="error"></div>
     </div>
@@ -35,19 +39,27 @@
         async function startSession() {
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
+            const resumeInput = document.getElementById('resume');
             const errorDiv = document.getElementById('error-msg');
             
             if(!name || !email) {
-                errorDiv.textContent = "Please fill in all fields";
+                errorDiv.textContent = "Please fill in all fields (Name, Email)";
                 errorDiv.style.display = 'block';
                 return;
             }
 
             try {
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('email', email);
+                if (resumeInput.files[0]) {
+                    formData.append('resume', resumeInput.files[0]);
+                }
+
                 const response = await fetch('/api/start_interview/', {
                     method: 'POST',
-                    body: JSON.stringify({ name, email }),
-                    headers: { 'Content-Type': 'application/json' }
+                    body: formData
+                    // No headers content-type, let browser set boundary
                 });
                 
                 const data = await response.json();
