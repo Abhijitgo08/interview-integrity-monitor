@@ -76,7 +76,8 @@ def get_candidate_details(request):
         'status': 'success',
         'name': candidate.name,
         'email': candidate.email,
-        'resume_url': resume_url
+        'resume_url': resume_url,
+        'violation_count': session.violations.count()
     })
 
 @csrf_exempt
@@ -266,7 +267,8 @@ def get_candidate_session_data(request):
         'end_time': session.end_time,
         'final_score': session.final_score,
         'risk_level': session.risk_level,
-        'violation_count': session.violation_count,
+        'risk_level': session.risk_level,
+        'violation_count': session.violations.count(),
         'is_active': session.is_active,
     }
     

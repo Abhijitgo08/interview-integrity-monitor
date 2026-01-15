@@ -116,6 +116,10 @@
                 } else {
                     document.querySelector('.resume-container').innerHTML = '<div style="padding:20px; text-align:center; color:#aaa;">No Resume Uploaded</div>';
                 }
+
+                if (data.violation_count !== undefined) {
+                    document.getElementById('violation-count').innerText = data.violation_count;
+                }
             } catch (e) {
                 console.error("Failed to load candidate details", e);
             }

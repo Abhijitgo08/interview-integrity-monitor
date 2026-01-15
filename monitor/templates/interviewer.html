@@ -293,6 +293,7 @@
     <script>
         // Video Monitoring (Poll latest frame)
         let framePollingInterval = null;
+        let dataPollingInterval = null;
 
         function startFramePolling() {
             if (framePollingInterval) clearInterval(framePollingInterval);
@@ -312,6 +313,55 @@
                     console.error("Frame poll error", e);
                 }
             }, 1000); // Poll every second (matches 1FPS upload)
+        }
+
+        function startDataPolling() {
+            if (dataPollingInterval) clearInterval(dataPollingInterval);
+
+            dataPollingInterval = setInterval(async () => {
+                if (!currentSessionId) return;
+                // We can re-use loadCandidateData but we need to avoid flickering or resetting UI interaction
+                // Ideally we separate data fetch from UI render, but for now we can just call a lightweight update
+                updateCandidateStats();
+            }, 2000);
+        }
+
+        async function updateCandidateStats() {
+            const candId = document.getElementById('candidate-select').value;
+            if (!candId) return;
+
+            try {
+                const res = await fetch(`/api/get_session_data/?candidate_id=${candId}`);
+                const json = await res.json();
+
+                if (json.status === 'success') {
+                    const d = json.data;
+                    // Update stats only
+                    document.getElementById('disp-violations').textContent = d.violation_count;
+
+                    const riskEl = document.getElementById('disp-risk');
+                    riskEl.textContent = d.risk_level;
+                    riskEl.className = `stat-value risk-${d.risk_level}`;
+
+                    // Update violations list if expanded or generally
+                    const violationsBody = document.getElementById('violations-body');
+                    // Simple rebuild for now - improved generic diffing would be better but this is fine for text
+                    let html = '';
+                    if (d.violations && d.violations.length > 0) {
+                        d.violations.forEach(v => {
+                            html += `<div style="border-bottom:1px solid #555; padding:8px 0; font-size:0.9rem;">
+                                <strong>${v.timestamp}</strong> - <span style="color:#ff6b6b">${v.type}</span> <br> <span style="color:#aaa">${v.details || ''}</span>
+                            </div>`;
+                        });
+                        document.getElementById('toggle-violations-btn').style.display = 'inline-block';
+                    } else {
+                        document.getElementById('toggle-violations-btn').style.display = 'none';
+                    }
+                    if (violationsBody.innerHTML !== html) {
+                        violationsBody.innerHTML = html;
+                    }
+                }
+            } catch (e) { console.error(e); }
         }
 
         // Removed startCamera() as we want to see candidate, not self.
@@ -355,6 +405,7 @@
                     const d = json.data;
                     currentSessionId = d.session_id; // Store for submission
                     startFramePolling(); // Start getting video
+                    startDataPolling(); // Start getting live stats
 
                     document.getElementById('disp-session-id').textContent = d.session_id;
                     document.getElementById('disp-date').textContent = new Date(d.start_time).toLocaleString();
