@@ -129,39 +129,6 @@ The core visual monitoring uses **Haar Feature-based Cascade Classifiers**.
 *   **FFT Analysis**: Uses `ScriptProcessorNode` to analyze raw PCM data.
 *   **Smoothing**: A time constant of `0.8` is used to smooth out momentary spikes, preventing false positives from keyboard clicks.
 
-## ⚙ Setup & Installation
-
-1.  **Clone the Repository**
-    ```bash
-    git clone <repository_url>
-    cd internship_proj
-    ```
-
-2.  **Install Dependencies**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-3.  **Setup ML Models**
-    This script copies the required OpenCV models to the project directory.
-    ```bash
-    python copy_model.py
-    ```
-
-4.  **Database Migrations**
-    ```bash
-    python manage.py makemigrations
-    python manage.py migrate
-    ```
-
-5.  **Run the Server**
-    ```bash
-    python manage.py runserver
-    ```
-
-6.  **Access the App**
-    Open `http://127.0.0.1:8000/` in your browser.
-
 ## 📊 Scoring System
 
 The candidate starts with **100 points**. Penalties are deducted as follows:
